@@ -34,6 +34,8 @@ banks could distribute money for loans more effectively. The goal of this projec
 build a model to predict whether or not a person will default on their loan based on their credit
 history data.
 
+The full report and code for data manipulation and logistic regression are contained in this repository. 
+
 ## Data
 The datasets consist of historical data from a hypothetical bank XYZ in the Southeastern US. We were given a test dataset (5,000 records), a training dataset (20,000 records), and a validation dataset (3,000 records), each of which contains 20 predictor variables and one response variable. The response variable is Default_ind, an indicator variable that equals 1 if the approved account defaulted, and equals 0 if not defaulted. The predictor variables and their descriptions are shown below:
 * Total debt on all credit products
@@ -86,7 +88,7 @@ F1 Score: 0.3351
 
 ### Random Forest
 
-We were assigned to produce two models: one logistic, and one machine learning model of our choice. After running many models, we found Random Forest to be one of the most accurate, and was the easiest to explain to stakeholders. We decided to narrow down the number of predictors based off the mean decrease in Gini index, and then ran the model. The results were opposite to our logistic model, and are as follows:
+We were assigned to produce two models: one logistic, and one machine learning model of our choice. We ran and fine-tuned this model through Weka, so no code is available. After running many models, we found Random Forest to be one of the most accurate, and was the easiest to explain to stakeholders. We decided to narrow down the number of predictors based off the mean decrease in Gini index, and then ran the model. The results were opposite to our logistic model, and are as follows:
 
 Precision: 0.7987
 
