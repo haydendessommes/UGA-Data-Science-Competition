@@ -1,0 +1,61 @@
+#get data
+train=read.csv("Simulated_Data_Train.csv")
+test=read.csv("Simulated_Data_Test.csv")
+
+# load packages
+library(mice)
+library(VIM)
+library(MASS)
+library(oddsratio)
+library(caret)
+
+# mice function takes original data and runs m=10 iterations of imputing
+temp_Data <- mice(train, m=1, maxit=50,meth='pmm',seed=500)
+temp_Test <- mice(test, m=1, maxit=50,meth='pmm',seed=500)
+summary(temp_Data)
+
+# check if the distribution of the imputed data matches that of the original data (it does). Good to include in EDA.
+densityplot(temp_Data, main='Density Plot of Observed and Imputed Data')
+
+# assign the first iteration of imputed data back into our original dataset. (picked first of the 10 iterations arbitrarily)
+train <- complete(temp_Data,1)
+test<-complete(temp_Test,1)
+summary(train) 
+# now we have our original training dataset with no NA's in uti_card_50plus_pct or rep_income
+
+#remove collinear variables
+train<-subset(train,select = c(tot_credit_debt, credit_good_age, card_age, credit_past_due_amount,inq_12_month_num, card_inq_24_month_num,card_open_36_month_num ,auto_open_.36_month_num, uti_50plus_pct,uti_max_credit_line, uti_card_50plus_pct,ind_acc_XYZ, rep_income, States, Default_ind))
+
+test<-subset(test,select = c(tot_credit_debt, credit_good_age, card_age, credit_past_due_amount,inq_12_month_num, card_inq_24_month_num,card_open_36_month_num ,auto_open_.36_month_num, uti_50plus_pct,uti_max_credit_line, uti_card_50plus_pct,ind_acc_XYZ, rep_income, States, Default_ind))
+
+#creating variables for each state
+train<-cbind(train,sapply(unique(train$States),function(x){as.numeric(train$States==x)}))
+train=subset(train, select = - States)
+test<-cbind(test,sapply(unique(test$States),function(x){as.numeric(test$States==x)}))
+test=subset(test, select = - States)
+
+#normal logistic model
+glm.fit <- glm(Default_ind~.,data=train, family="binomial")
+glm.fit$aic
+summary(glm.fit)
+
+#odds ratio
+logit=exp(coef(glm.fit))
+logit
+
+#convert logit to probability
+exp(logit)/(1+exp(logit))
+
+#predicting on test set
+glm.probs2 <- predict(glm.fit,newdata=test,type = "response")
+#predicting on training set
+glm.probs_train <-predict(glm.fit,newdata=train,type = "response")
+
+#converting data to be more readable
+glm.probs_text <- ifelse(glm.probs2 > 0.5, 1, 0)
+glm.probs_text_train <- ifelse(glm.probs_train > 0.5, 1, 0)
+
+#confusion matrix
+confusionMatrix(data=as.factor(glm.probs_text), reference=as.factor(test$Default_ind),mode="everything", positive="1")
+
+confusionMatrix(data=as.factor(glm.probs_text_train), reference=as.factor(train$Default_ind),mode="everything", positive="1")
